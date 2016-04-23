@@ -54,12 +54,13 @@ all_urls.each do |url|
         record["address"] = ""
       end
     when "Applicant's Name and Address", "Officer's Name", "Objections Received", "Application Status",
-      "Decision", "Expiry Date"
+      "Decision", "Expiry Date", "Change to Application"
       # Do nothing with this
     when "Proposed Use or Development"
       record["description"] = value
+    
     else
-      raise "Unexpected #{heading}"
+      raise "Unexpected #{heading}" 
     end
   end
   if (ScraperWiki.select("* from data where `council_reference`='#{record['council_reference']}'").empty? rescue true) 
