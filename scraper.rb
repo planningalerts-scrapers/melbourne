@@ -35,6 +35,7 @@ end until urls.count == 0
 
 all_urls.each do |url|
   p = agent.get(url)
+  # Comment URl has been removed from the new version of the detailed view of the Application ID
   #"comment_url" => comment_url
   record = {"info_url" => url, "date_scraped" => Date.today.to_s }
   p.at('.permit-detail').search('tr').each do |tr|
@@ -60,6 +61,7 @@ all_urls.each do |url|
       record["description"] = value
     
     else
+      #Need to find better way to handle exceptions
       raise "Unexpected #{heading}" 
     end
   end
