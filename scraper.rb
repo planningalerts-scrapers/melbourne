@@ -5,17 +5,27 @@ agent = Mechanize.new
 
 comment_url = "http://www.melbourne.vic.gov.au/BuildingandPlanning/Planning/planningpermits/Pages/Objecting.aspx"
 
-base_url = "http://www.melbourne.vic.gov.au/BuildingandPlanning/Planning/Pages/Planningregisteronlinesearchresults.aspx"
+#base_url = "http://www.melbourne.vic.gov.au/BuildingandPlanning/Planning/Pages/Planningregisteronlinesearchresults.aspx"
+base_url = "http://www.melbourne.vic.gov.au/building-and-development/property-information/planning-building-registers/Pages/town-planning-permits-register-search-results.aspx"
+
+
+#http://www.melbourne.vic.gov.au/building-and-development/property-information/planning-building-registers/Pages/town-planning-permits-register-search-results.aspx?std=30/03/2016&end=30/04/2016
+
 # Get applications from the last two weeks
 start_date = (Date.today - 14).strftime("%d/%m/%Y")
 end_date = Date.today.strftime("%d/%m/%Y")
+
+puts "using dates" + start_date + end_date
 
 page = 1
 all_urls = []
 begin
   url = "#{base_url}?std=#{start_date}&end=#{end_date}&page=#{page}"
   p = agent.get(url)
-  urls = p.search('table.permitsList .detail .column1 a').map{|a| a["href"]}
+  urls = p.search('table.permits-list .detail .column1 a').map{|a| a["href"]}
+  
+  puts urls
+
   all_urls += urls
   page += 1
   # FIXME: This is just working around an infinite loop that we currently have
@@ -25,8 +35,9 @@ end until urls.count == 0
 
 all_urls.each do |url|
   p = agent.get(url)
-  record = {"info_url" => url, "date_scraped" => Date.today.to_s, "comment_url" => comment_url}
-  p.at('.permitDetail').search('tr').each do |tr|
+  #"comment_url" => comment_url
+  record = {"info_url" => url, "date_scraped" => Date.today.to_s }
+  p.at('.permit-detail').search('tr').each do |tr|
     heading = tr.at('th').inner_text
     value = tr.at('td').inner_text
     case heading
