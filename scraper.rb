@@ -14,10 +14,9 @@ page = 1
 all_urls = []
 begin
   url = "#{base_url}?std=#{start_date}&end=#{end_date}&page=#{page}"
+  puts "Fetching #{url}"
   p = agent.get(url)
   urls = p.search('table.permits-list .detail .column1 a').map{|a| a["href"]}
-
-  puts urls
 
   all_urls += urls
   page += 1
@@ -27,6 +26,7 @@ end until urls.count == 0
 
 
 all_urls.each do |url|
+  puts "Fetching #{url}"
   p = agent.get(url)
   # Comment URl has been removed from the new version of the detailed view of the Application ID
   #"comment_url" => comment_url
