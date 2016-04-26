@@ -3,7 +3,7 @@ require 'mechanize'
 
 agent = Mechanize.new
 
-comment_url = "http://www.melbourne.vic.gov.au/BuildingandPlanning/Planning/planningpermits/Pages/Objecting.aspx"
+comment_url = "mailto:planning@melbourne.vic.gov.au"
 base_url = "http://www.melbourne.vic.gov.au/building-and-development/property-information/planning-building-registers/Pages/town-planning-permits-register-search-results.aspx"
 
 # Get applications from the last two weeks
@@ -28,9 +28,9 @@ end until urls.count == 0
 all_urls.each do |url|
   puts "Fetching #{url}"
   p = agent.get(url)
-  # Comment URl has been removed from the new version of the detailed view of the Application ID
-  #"comment_url" => comment_url
-  record = {"info_url" => url, "date_scraped" => Date.today.to_s }
+
+  record = {"info_url" => url, "comment_url" => comment_url, "date_scraped" => Date.today.to_s}
+
   p.at('.permit-detail').search('tr').each do |tr|
     heading = tr.at('th').inner_text
     value = tr.at('td').inner_text
