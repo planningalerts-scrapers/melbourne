@@ -35,22 +35,22 @@ all_urls.each do |url|
     heading = tr.at('th').inner_text
     value = tr.at('td').inner_text
     case heading
-    when "Permit Number"
+    when "Application number"
       record["council_reference"] = value
-    when "Date Received"
+    when "Date received"
       day, month, year = value.split("/")
       record["date_received"] = Date.new(year.to_i, month.to_i, day.to_i).to_s
-    when "Address of Land"
+    when "Address"
       t = value.split("(").first
       if t
         record["address"] = t.strip
       else
         record["address"] = ""
       end
-    when "Applicant's Name and Address", "Officer's Name", "Objections Received", "Application Status",
-      "Decision", "Expiry Date", "Change to Application"
+    when "Applicant's Name and Address", "Planning officer", "Objections received", "Application status",
+      "Decision", "Expiry Date", "Change to Application", "VicSmart application", "", "Amendments to permit"
       # Do nothing with this
-    when "Proposed Use or Development"
+    when "Proposal"
       record["description"] = value
     else
       #Need to find better way to handle exceptions
