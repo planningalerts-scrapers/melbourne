@@ -29,7 +29,7 @@ all_urls.each do |url|
   puts "Fetching #{url}"
   p = agent.get(url)
 
-  record = {"info_url" => url, "comment_url" => comment_url, "date_scraped" => Date.today.to_s}
+  record = {"info_url" => p.uri.to_s, "comment_url" => comment_url, "date_scraped" => Date.today.to_s}
 
   p.at('.permit-detail').search('tr').each do |tr|
     heading = tr.at('th').inner_text
