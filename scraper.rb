@@ -8,9 +8,14 @@ require 'scraperwiki'
 require 'mechanize'
 
 agent = Mechanize.new
+# The register returns an empty 202 response to non-browser User-Agents
+# (planningalerts-scrapers/issues#977)
+agent.user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " \
+                   "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 comment_url = "mailto:planning@melbourne.vic.gov.au"
-base_url = "http://www.melbourne.vic.gov.au/building-and-development/property-information/planning-building-registers/Pages/town-planning-permits-register-search-results.aspx"
+site_url = "https://www.melbourne.vic.gov.au"
+base_url = "#{site_url}/planning-permit-register-search-results"
 
 # Get applications from the last two weeks
 start_date = (Date.today - 14).strftime("%d/%m/%Y")
@@ -50,7 +55,7 @@ begin
 
     council_reference = application_link.inner_text.strip
     relative_url = application_link['href']
-    info_url = relative_url.start_with?('http') ? relative_url : "http://www.melbourne.vic.gov.au#{relative_url}"
+    info_url = relative_url.start_with?('http') ? relative_url : "#{site_url}#{relative_url}"
 
     # Parse the received date
     received_text = received_cell.inner_text.strip
