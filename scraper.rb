@@ -8,8 +8,20 @@ require 'scraperwiki'
 require 'mechanize'
 
 agent = Mechanize.new
-# The register returns an empty 202 response to non-browser User-Agents
-# (planningalerts-scrapers/issues#977)
+
+if ENV["MORPH_AUSTRALIAN_PROXY"]
+  # On morph.io set the environment variable MORPH_AUSTRALIAN_PROXY to
+  # http://morph:password@au.proxy.oaf.org.au:8888 replacing password with
+  # the real password.
+  puts "Using Australian proxy..."
+  agent.agent.set_proxy(ENV["MORPH_AUSTRALIAN_PROXY"])
+end
+
+# The register sits behind AWS WAF, which challenges requests that don't look
+# like they came from a browser (planningalerts-scrapers/issues#977). A browser
+# User-Agent is enough from an Australian connection, but morph.io runs from a
+# US datacentre and is challenged even with one, so it needs the proxy above as
+# well.
 agent.user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " \
                    "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
@@ -29,12 +41,20 @@ begin
   puts "Fetching page #{page_number}: #{url}"
   page = agent.get(url)
 
-  if page.body.size < 1024
-    puts "Page was only #{page.body.size} bytes - too small to have useful content!"
+  # A challenged request comes back as an empty 202 - AWS WAF only renders the
+  # challenge page itself for requests that accept text/html - so fail loudly
+  # rather than quietly reporting no applications.
+  waf_action = page.response['x-amzn-waf-action']
+  if waf_action
+    raise "Blocked by AWS WAF (x-amzn-waf-action: #{waf_action}). " \
+          "Set MORPH_AUSTRALIAN_PROXY to the url of an Australian proxy."
   end
 
+  results = page.at('div.planning-permit-register-results')
+  raise "No results section on #{url} - has the page layout changed?" unless results
+
   # Find all table rows in the results table (skip header row)
-  rows = page.search('div.planning-permit-register-results table tbody tr.table__row')
+  rows = results.search('table tbody tr.table__row')
 
   puts "  found #{rows.size} applications on page #{page_number}"
 
@@ -93,5 +113,5 @@ begin
 
 end until rows.empty?
 
-puts "Scraping complete. Total records saved: #{total_records_saved}"
-puts "No applications found in date range!" if total_records_saved == 0
+puts "No applications found in date range!" if total_records_saved.zero?
+puts "Finished - added #{total_records_saved} records"
